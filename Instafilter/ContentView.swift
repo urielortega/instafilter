@@ -41,22 +41,25 @@ struct ContentView: View {
                     showingImagePicker = true
                 }
                 
-                HStack {
-                    Text("Intensity")
-                    Slider(value: $filterIntensity)
-                        .onChange(of: filterIntensity) { _ in applyProcessing() }
-                }
-                .padding(.vertical)
-                
-                HStack {
-                    Button("Change Filter") {
-                        showingFilterSheet = true
+                Group {
+                    HStack {
+                        Text("Intensity")
+                        Slider(value: $filterIntensity)
+                            .onChange(of: filterIntensity) { _ in applyProcessing() }
                     }
+                    .padding(.vertical)
                     
-                    Spacer()
-                    
-                    Button("Save", action: save)
+                    HStack {
+                        Button("Change Filter") {
+                            showingFilterSheet = true
+                        }
+                        
+                        Spacer()
+                        
+                        Button("Save", action: save)
+                    }
                 }
+                .disabled(image == nil)
             }
             .padding([.horizontal, .bottom])
             .navigationTitle("Instafilter")
