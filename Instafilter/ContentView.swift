@@ -15,6 +15,8 @@ struct ContentView: View {
     @State private var filterRadius = 0.5
     @State private var filterScale = 0.5
     
+    @State private var filterAngle = 0.5
+    
     @State private var showingImagePicker = false
     @State private var inputImage: UIImage?
     @State private var processedImage: UIImage?
@@ -30,16 +32,18 @@ struct ContentView: View {
         NavigationStack {
             VStack {
                 ZStack {
-                    Rectangle()
-                        .fill(.secondary)
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(.ultraThinMaterial)
                     
                     Text("Tap to select a picture")
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                         .font(.headline)
                     
                     image?
                         .resizable()
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                         .scaledToFit()
+                        .padding(10)
                 }
                 .onTapGesture {
                     showingImagePicker = true
@@ -73,10 +77,18 @@ struct ContentView: View {
                         .padding(.vertical)
                     }
                     
-                    HStack {
-                        Button("Change Filter") {
-                            showingFilterSheet = true
+                    
+                    if inputKeys.contains(kCIInputAngleKey) {
+                        HStack {
+                            Text("Angle")
+                            Slider(value: $filterAngle)
+                                .onChange(of: filterAngle) { _ in applyProcessing() }
                         }
+                        .padding(.vertical)
+                    }
+                    
+                    HStack {
+                        Button("Change Filter") { showingFilterSheet = true }
                         
                         Spacer()
                         
@@ -92,14 +104,21 @@ struct ContentView: View {
                 ImagePicker(image: $inputImage)
             }
             .confirmationDialog("Select a filter", isPresented: $showingFilterSheet) {
-                Button("Crystallize") { setFilter(CIFilter.crystallize()) }
-                Button("Edges") { setFilter(CIFilter.edges()) }
-                Button("Gaussian Blur") { setFilter(CIFilter.gaussianBlur()) }
-                Button("Pixellate") { setFilter(CIFilter.pixellate()) }
-                Button("Sepia Tone") { setFilter(CIFilter.sepiaTone()) }
-                Button("Unsharp Mask") { setFilter(CIFilter.unsharpMask()) }
-                Button("Vignette") { setFilter(CIFilter.vignette()) }
-                
+                Group {
+                    Button("Crystallize") { setFilter(CIFilter.crystallize()) }
+                    Button("Edges") { setFilter(CIFilter.edges()) }
+                    Button("Gaussian Blur") { setFilter(CIFilter.gaussianBlur()) }
+                    Button("Pixellate") { setFilter(CIFilter.pixellate()) }
+                    Button("Sepia Tone") { setFilter(CIFilter.sepiaTone()) }
+                    Button("Unsharp Mask") { setFilter(CIFilter.unsharpMask()) }
+                    Button("Vignette") { setFilter(CIFilter.vignette()) }
+                    
+                    // New filters:
+                    Button("Disc Blur") { setFilter(CIFilter.discBlur()) }
+                    Button("Kaleidoscope") { setFilter(CIFilter.kaleidoscope()) }
+                    Button("Motion Blur") { setFilter(CIFilter.motionBlur()) }
+                }
+
                 Button("Cancel", role: .cancel) {  }
             }
         }
@@ -135,6 +154,8 @@ struct ContentView: View {
         if inputKeys.contains(kCIInputIntensityKey) { currentFilter.setValue(filterIntensity, forKey: kCIInputIntensityKey) }
         if inputKeys.contains(kCIInputRadiusKey) { currentFilter.setValue(filterRadius * 200, forKey: kCIInputRadiusKey) }
         if inputKeys.contains(kCIInputScaleKey) { currentFilter.setValue(filterScale * 10, forKey: kCIInputScaleKey) }
+        
+        if inputKeys.contains(kCIInputAngleKey) { currentFilter.setValue(filterAngle, forKey: kCIInputAngleKey) }
         
         guard let outputImage = currentFilter.outputImage else { return }
         
